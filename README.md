@@ -87,11 +87,54 @@ Standardmäßig tracken wir `https://www.canyon.com`. Das kann im Workflow geän
 
 ## Technische Details (kurz)
 
+### Frontend & Hosting
 - **Frontend:** HTML/JavaScript mit Chart.js für die Visualisierung
-- **Backend:** Kein Backend nötig – reines Client-Side Rendering
 - **Hosting:** GitHub Pages (kostenlos, automatisch deployed)
 - **Daten-Format:** JSON-Dateien, die monatlich aktualisiert werden
-- **API:** Chrome UX Report API (benötigt API Key)
+- **Rendering:** Client-Side, kein Backend nötig
+
+### Chrome UX Report (CrUX) API
+
+Die Daten kommen von Googles offizieller **CrUX API v1**.
+
+**Wo bekommt man den API Key?**
+
+1. **Google Cloud Console** öffnen: https://console.cloud.google.com/
+2. Ein Projekt erstellen (oder bestehendes nutzen)
+3. **Navigation:** `APIs & Services` → `Library`
+4. Nach "Chrome UX Report API" suchen
+5. **Aktivieren** klicken (Enable)
+6. **Navigation:** `APIs & Services` → `Credentials`
+7. Auf **Create Credentials** → **API key** klicken
+8. Der Key wird angezeigt und kann kopiert werden
+
+**Wichtig:** Für Produktionsumgebungen sollte man den Key auf bestimmte Domains/IPs einschränken (über `Restrict key` in den Credentials).
+
+**Wo trägt man den Key ein?**
+
+Der Key wird **NICHT** im Code gespeichert (Sicherheitsrisiko), sondern als **GitHub Secret**:
+
+1. GitHub Repository öffnen
+2. **Settings** → **Secrets and variables** → **Actions**
+3. **New repository secret**
+4. **Name:** `CRUX_API_KEY`
+5. **Value:** Dein kopiierter API Key
+6. **Add secret**
+
+Der Workflow liest den Key automatisch über `secrets.CRUX_API_KEY` aus.
+
+**API Limits & Kosten**
+
+- **Kosten:** Die CrUX API ist komplett **kostenlos**
+- **Quota:** 1.500 Anfragen pro Tag pro Projekt
+- **Rate Limit:** Keine strikte Begrenzung, aber bei Massenabfragen sollte man 1 Sekunde Pause zwischen Calls einbauen (wird vom Tool bereits gemacht)
+
+Für unseren Use Case (ca. 2 API-Calls pro Monat für Mobile + Desktop) sind wir weit unter dem Limit.
+
+**Daten-Verfügbarkeit**
+- Google sammelt Daten über 28 Tage und veröffentlicht dann
+- Die API liefert historische Daten der letzten ~25 Wochen (ca. 6 Monate)
+- Ältere Daten müssen über das Archiv-System oder selbst gespeichert werden
 
 ## Support & Anpassungen
 
