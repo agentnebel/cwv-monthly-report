@@ -1,20 +1,17 @@
 name: Fetch Monthly CWV Data
 
 on:
-  # Run automatically on the 1st of every month at 08:00 UTC
   schedule:
     - cron: '0 8 1 * *'
-  # Run on every push to main branch
   push:
     branches: [ "main" ]
-  # Allow manual trigger
   workflow_dispatch:
 
+# Grant GITHUB_TOKEN the permissions to deploy to GitHub Pages
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
-  actions: write
 
 concurrency:
   group: "pages"
@@ -22,6 +19,9 @@ concurrency:
 
 jobs:
   fetch-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,8 +32,8 @@ jobs:
         with:
           node-version: '20'
 
-      # CANYON FETCHES
-      - name: Fetch CrUX Data (Canyon Mobile)
+      # CANYON
+      - name: Fetch Canyon Mobile
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
           ORIGIN: 'https://www.canyon.com'
@@ -41,7 +41,7 @@ jobs:
           OUTPUT_FILE: data/history-phone.json
         run: node fetch_history.js
 
-      - name: Fetch CrUX Data (Canyon Desktop)
+      - name: Fetch Canyon Desktop
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
           ORIGIN: 'https://www.canyon.com'
@@ -49,8 +49,8 @@ jobs:
           OUTPUT_FILE: data/history-desktop.json
         run: node fetch_history.js
 
-      # SPECIALIZED FETCHES
-      - name: Fetch CrUX Data (Specialized Mobile)
+      # SPECIALIZED
+      - name: Fetch Specialized Mobile
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
           ORIGIN: 'https://www.specialized.com'
@@ -58,7 +58,7 @@ jobs:
           OUTPUT_FILE: data/specialized-phone.json
         run: node fetch_history.js
 
-      - name: Fetch CrUX Data (Specialized Desktop)
+      - name: Fetch Specialized Desktop
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
           ORIGIN: 'https://www.specialized.com'
@@ -66,32 +66,23 @@ jobs:
           OUTPUT_FILE: data/specialized-desktop.json
         run: node fetch_history.js
 
-      - name: Archive old data
-        run: |
-          mkdir -p archive
-          if [ -f data/history-phone.json ]; then cp data/history-phone.json archive/history-phone-$(date +%Y%m%d).json; fi
-          if [ -f data/history-desktop.json ]; then cp data/history-desktop.json archive/history-desktop-$(date +%Y%m%d).json; fi
-          if [ -f data/specialized-phone.json ]; then cp data/specialized-phone.json archive/specialized-phone-$(date +%Y%m%d).json; fi
-          if [ -f data/specialized-desktop.json ]; then cp data/specialized-desktop.json archive/specialized-desktop-$(date +%Y%m%d).json; fi
+      # DEBUG
+      - name: Debug - List Files
+        run: ls -R data/
 
-      - name: Commit and Push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ archive/
-          # Commit only if changes exist
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update CWV data (Mobile & Desktop) - $(date +%Y-%m-%d)"
-          git push
-
-      - name: Copy data to docs folder
-        run: |
-          mkdir -p docs
-          cp -r data docs/
-          cp index.html docs/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      # Setup Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      # Upload Artifact (Official Way)
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          keep_files: false
+          # Upload entire repository (excluding .git)
+          # We need to make sure index.html is in root
+          path: '.'
+
+      # Deploy to Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
