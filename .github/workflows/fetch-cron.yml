@@ -28,29 +28,47 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Fetch CrUX Data (Mobile)
+      # CANYON FETCHES
+      - name: Fetch CrUX Data (Canyon Mobile)
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+          ORIGIN: 'https://www.canyon.com'
           DEVICE: PHONE
           OUTPUT_FILE: data/history-phone.json
         run: node fetch_history.js
 
-      - name: Fetch CrUX Data (Desktop)
+      - name: Fetch CrUX Data (Canyon Desktop)
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+          ORIGIN: 'https://www.canyon.com'
           DEVICE: DESKTOP
           OUTPUT_FILE: data/history-desktop.json
+        run: node fetch_history.js
+
+      # SPECIALIZED FETCHES
+      - name: Fetch CrUX Data (Specialized Mobile)
+        env:
+          CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+          ORIGIN: 'https://www.specialized.com'
+          DEVICE: PHONE
+          OUTPUT_FILE: data/specialized-phone.json
+        run: node fetch_history.js
+
+      - name: Fetch CrUX Data (Specialized Desktop)
+        env:
+          CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+          ORIGIN: 'https://www.specialized.com'
+          DEVICE: DESKTOP
+          OUTPUT_FILE: data/specialized-desktop.json
         run: node fetch_history.js
 
       - name: Archive old data
         run: |
           mkdir -p archive
-          if [ -f data/history-phone.json ]; then
-            cp data/history-phone.json archive/history-phone-$(date +%Y%m%d).json
-          fi
-          if [ -f data/history-desktop.json ]; then
-            cp data/history-desktop.json archive/history-desktop-$(date +%Y%m%d).json
-          fi
+          if [ -f data/history-phone.json ]; then cp data/history-phone.json archive/history-phone-$(date +%Y%m%d).json; fi
+          if [ -f data/history-desktop.json ]; then cp data/history-desktop.json archive/history-desktop-$(date +%Y%m%d).json; fi
+          if [ -f data/specialized-phone.json ]; then cp data/specialized-phone.json archive/specialized-phone-$(date +%Y%m%d).json; fi
+          if [ -f data/specialized-desktop.json ]; then cp data/specialized-desktop.json archive/specialized-desktop-$(date +%Y%m%d).json; fi
 
       - name: Commit and Push
         run: |

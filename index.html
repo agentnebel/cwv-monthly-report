@@ -14,7 +14,10 @@
         h1 { text-align: center; margin-bottom: 10px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.9em; }
         
-        .toggle-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        .brand-tabs .toggle-btn { border-radius: 4px; border-bottom: 2px solid transparent; background: transparent; color: #666; font-weight: bold; border: none; padding: 10px 30px; }
+        .brand-tabs .toggle-btn.active { background: white; color: #333; border-bottom: 3px solid #007aff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .brand-tabs .toggle-btn:hover { background: rgba(255,255,255,0.5); }
+        .toggle-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .toggle-btn { padding: 10px 20px; border: 1px solid #ccc; border-radius: 20px; background: white; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
         .toggle-btn.active { background: #007aff; color: white; border-color: #007aff; font-weight: bold; }
         .toggle-btn:hover:not(.active) { background: #f0f0f0; }
@@ -51,6 +54,12 @@
 <div class="container">
     <h1>Core Web Vitals History</h1>
     <div class="subtitle" id="report-meta">Lade Daten...</div>
+
+    <!-- Brand Tabs -->
+    <div class="toggle-container brand-tabs">
+        <button class="toggle-btn active" onclick="switchBrand('CANYON')" id="brand-canyon">🚴 Canyon</button>
+        <button class="toggle-btn" onclick="switchBrand('SPECIALIZED')" id="brand-specialized">⚡ Specialized</button>
+    </div>
 
     <div class="toggle-container">
         <button class="toggle-btn active" onclick="switchDevice('PHONE')" id="btn-phone">📱 Mobile</button>
@@ -112,10 +121,29 @@
 
     let charts = {}; // Store chart instances to destroy them on switch
     let currentDevice = 'PHONE';
+    let currentBrand = 'CANYON';
+
+    function switchBrand(brand) {
+        if (brand === currentBrand) return;
+        currentBrand = brand;
+        
+        // Update Buttons
+        document.getElementById('brand-canyon').className = `toggle-btn ${brand === 'CANYON' ? 'active' : ''}`;
+        document.getElementById('brand-specialized').className = `toggle-btn ${brand === 'SPECIALIZED' ? 'active' : ''}`;
+        
+        // Load data for current device but new brand
+        loadData(currentDevice);
+    }
 
     async function loadData(device) {
-        const filename = device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json';
-        document.getElementById('report-meta').innerText = `Lade ${device} Daten...`;
+        let filename;
+        if (currentBrand === 'CANYON') {
+            filename = device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json';
+        } else {
+            filename = device === 'PHONE' ? 'data/specialized-phone.json' : 'data/specialized-desktop.json';
+        }
+        
+        document.getElementById('report-meta').innerText = `Lade ${currentBrand} ${device} Daten...`;
         
         // Save current device for potential rollback
         const previousDevice = currentDevice;  
@@ -125,42 +153,36 @@
             const response = await fetch(filename);
             const contentType = response.headers.get('content-type');
             if (!response.ok || !contentType || !contentType.includes('application/json')) {
-                throw new Error(device === 'PHONE' ? 'No data available' : 'Desktop data not available yet - Generate it via GitHub Actions or wait for the next monthly run');
+                throw new Error(`${currentBrand} ${device} data not available yet - Please trigger workflow`);
             }
             const json = await response.json();
             renderReport(json);
             // Success - update the subtitle to show device
-            document.getElementById('report-meta').innerText = `Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'} data | Letzte 12 Monate`;
+            const brandIcon = currentBrand === 'CANYON' ? '🚴' : '⚡';
+            document.getElementById('report-meta').innerText = `${brandIcon} Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'} | Letzte 12 Monate`;
         } catch (e) {
-            // Reset to previous device on error
-            currentDevice = previousDevice;
-            // Update UI to reflect current actual device
-            updateDeviceButtons(currentDevice);
+            // Reset to previous device on error if it was a device switch failure
+            // But if it's a brand switch failure, we might want to stay on the failed brand to show error?
+            // For simplicity, we just show the error
+            
+            updateDeviceButtons(currentDevice); // Ensure UI matches
             
             console.warn(e.message);
-            // Fallback: Try legacy history.json only for mobile
-            if (device === 'PHONE') {
+            // Fallback: Try legacy history.json only for Canyon Mobile
+            if (currentBrand === 'CANYON' && device === 'PHONE') {
                 try {
                     const fallback = await fetch('data/history.json');
                     if (fallback.ok) {
                         const json = await fallback.json();
                         renderReport(json);
-                        document.getElementById('report-meta').innerText = `Origin: ${json.origin}`;
+                        document.getElementById('report-meta').innerText = `Origin: ${json.origin} (Legacy)`;
                         return;
                     }
-                } catch (e2) {
-                    console.warn("Fallback auch nicht verfügbar");
-                }
+                } catch (e2) {}
             }
             
-            // Show error or info
-            if (e.message.includes('Desktop data not available')) {
-                document.getElementById('report-meta').innerHTML = 
-                    `<span style="color:orange">⚠️ Desktop Daten noch nicht verfügbar. Bitte Workflow manuell starten oder warten.</span>`;
-            } else {
-                document.getElementById('report-meta').innerHTML = 
-                    `<span class="error-msg">❌ Fehler: ${e.message}</span>`;
-            }
+            document.getElementById('report-meta').innerHTML = 
+                `<span style="color:orange">⚠️ Daten für ${currentBrand} ${device} fehlen noch. Bitte Workflow starten.</span>`;
         }
     }
 
@@ -168,6 +190,12 @@
         // Update Buttons
         document.getElementById('btn-phone').className = `toggle-btn ${device === 'PHONE' ? 'active' : ''}`;
         document.getElementById('btn-desktop').className = `toggle-btn ${device === 'DESKTOP' ? 'active' : ''}`;
+        
+        // Update CrUX Vis Link with correct Origin
+        const origin = currentBrand === 'CANYON' ? 'https://www.canyon.com' : 'https://www.specialized.com';
+        const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=${encodeURIComponent(origin)}&identifier=origin&device=${device}&periodStart=0&periodEnd=-1&display=p75s`;
+        document.getElementById('crux-link').href = cruxUrl;
+    }
         
         // Update CrUX Vis Link
         const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=${device}&periodStart=0&periodEnd=-1&display=p75s`;
