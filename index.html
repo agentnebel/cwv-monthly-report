@@ -26,7 +26,9 @@
         .cls .metric-badge { background: #e8f0fe; color: #1967d2; }
         .inp .metric-badge { background: #fce8e6; color: #c5221f; }
 
-        footer { text-align: center; margin-top: 40px; color: #888; font-size: 0.8em; }
+        footer { text-align: center; margin-top: 40px; color: #888; font-size: 0.8em; line-height: 1.8; }
+        footer a { color: #007aff; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
         .error-msg { color: red; text-align: center; margin-top: 20px; }
     </style>
 </head>
@@ -76,7 +78,8 @@
 
     <footer>
         Datenquelle: Chrome User Experience Report (CrUX) via API<br>
-        Generiert am <span id="gen-date">-</span>
+        Generiert am <span id="gen-date">-</span><br>
+        <a id="crux-link" href="https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=PHONE&periodStart=0&periodEnd=-1&display=p75s" target="_blank">For deeper analytics see CrUX Vis ↗</a>
     </footer>
 </div>
 
@@ -134,13 +137,21 @@
         document.getElementById('btn-phone').className = `toggle-btn ${device === 'PHONE' ? 'active' : ''}`;
         document.getElementById('btn-desktop').className = `toggle-btn ${device === 'DESKTOP' ? 'active' : ''}`;
         
+        // Update CrUX Vis Link
+        const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=${device}&periodStart=0&periodEnd=-1&display=p75s`;
+        document.getElementById('crux-link').href = cruxUrl;
+        
         loadData(device);
     }
 
     function renderReport(data) {
-        // Meta Infos
-        document.getElementById('report-meta').innerText = `Origin: ${data.origin} | Device: ${data.formFactor}`;
+        // Meta Infos - nur Origin, Device ist über Buttons ersichtlich
+        document.getElementById('report-meta').innerText = `Origin: ${data.origin}`;
         document.getElementById('gen-date').innerText = new Date(data.generatedAt || new Date()).toLocaleString();
+        
+        // Update CrUX Vis Link basierend auf aktuellem Device
+        const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=${currentDevice}&periodStart=0&periodEnd=-1&display=p75s`;
+        document.getElementById('crux-link').href = cruxUrl;
 
         const periods = data.periods || []; // Array of monthly data
         const labels = periods.map(p => p.label);
