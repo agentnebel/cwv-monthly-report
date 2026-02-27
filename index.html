@@ -94,28 +94,36 @@
     async function loadData(device) {
         const filename = device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json';
         
-        // UI Feedback
         document.getElementById('report-meta').innerText = `Lade ${device} Daten...`;
         
         try {
             const response = await fetch(filename);
-            if (!response.ok) {
-                // Fallback attempt: maybe only history.json exists (legacy)
-                if (device === 'PHONE') {
-                    const fallback = await fetch('data/history.json');
-                    if (fallback.ok) {
-                        const json = await fallback.json();
-                        renderReport(json);
-                        return;
-                    }
-                }
-                throw new Error(`Konnte ${filename} nicht laden. (Läuft der Workflow noch?)`);
+            
+            // Check if response is valid JSON
+            const contentType = response.headers.get('content-type');
+            if (!response.ok || !contentType || !contentType.includes('application/json')) {
+                throw new Error(`Datei nicht gefunden (Status: ${response.status})`);
             }
+            
             const json = await response.json();
             renderReport(json);
         } catch (e) {
-            document.getElementById('report-meta').innerHTML = `<span class="error-msg">⚠️ ${e.message}</span>`;
-            console.error(e);
+            console.warn(e.message);
+            // Fallback: Try legacy history.json
+            try {
+                const fallback = await fetch('data/history.json');
+                if (fallback.ok) {
+                    const json = await fallback.json();
+                    renderReport(json);
+                    return;
+                }
+            } catch (e2) {
+                console.warn("Fallback auch nicht verfügbar");
+            }
+            
+            // Show info message
+            document.getElementById('report-meta').innerHTML = 
+                `<span style="color:orange">⏳ Daten werden generiert... Bitte warte auf den Workflow.</span>`;
         }
     }
 
