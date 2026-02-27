@@ -130,7 +130,7 @@
             const json = await response.json();
             renderReport(json);
             // Success - update the subtitle to show device
-            document.getElementById('report-meta').innerText = `Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'} data`;
+            document.getElementById('report-meta').innerText = `Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'} data | Letzte 12 Monate`;
         } catch (e) {
             // Reset to previous device on error
             currentDevice = previousDevice;
@@ -189,7 +189,8 @@
         const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=${currentDevice}&periodStart=0&periodEnd=-1&display=p75s`;
         document.getElementById('crux-link').href = cruxUrl;
 
-        const periods = data.periods || []; // Array of monthly data
+        // Limit to last 12 months
+        const periods = (data.periods || []).slice(-12);
         const labels = periods.map(p => p.label);
 
         // Render Charts
