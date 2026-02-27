@@ -28,16 +28,28 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Fetch CrUX Data
+      - name: Fetch CrUX Data (Mobile)
         env:
           CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+          DEVICE: PHONE
+          OUTPUT_FILE: data/history-phone.json
+        run: node fetch_history.js
+
+      - name: Fetch CrUX Data (Desktop)
+        env:
+          CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+          DEVICE: DESKTOP
+          OUTPUT_FILE: data/history-desktop.json
         run: node fetch_history.js
 
       - name: Archive old data
         run: |
           mkdir -p archive
-          if [ -f data/history.json ]; then
-            cp data/history.json archive/history-$(date +%Y%m%d).json
+          if [ -f data/history-phone.json ]; then
+            cp data/history-phone.json archive/history-phone-$(date +%Y%m%d).json
+          fi
+          if [ -f data/history-desktop.json ]; then
+            cp data/history-desktop.json archive/history-desktop-$(date +%Y%m%d).json
           fi
 
       - name: Commit and Push
@@ -45,7 +57,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ archive/
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update CWV data - $(date +%Y-%m-%d)"
+          # Commit only if changes exist
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update CWV data (Mobile & Desktop) - $(date +%Y-%m-%d)"
           git push
 
       - name: Copy data to docs folder

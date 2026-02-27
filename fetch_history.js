@@ -1,12 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-// Configuration
+// Configuration Defaults
 const CONFIG = {
-    origin: 'https://www.canyon.com',
-    formFactor: 'PHONE', // PHONE, DESKTOP, TABLET
+    origin: process.env.ORIGIN || 'https://www.canyon.com',
+    formFactor: process.env.DEVICE || 'PHONE', // PHONE, DESKTOP, TABLET
     metrics: ['largest_contentful_paint', 'cumulative_layout_shift', 'interaction_to_next_paint'],
-    apiKey: process.env.CRUX_API_KEY // Ensure this is set in your environment
+    apiKey: process.env.CRUX_API_KEY,
+    outputFile: process.env.OUTPUT_FILE || 'data/history.json'
 };
 
 const CRUX_HISTORY_API = 'https://chromeuxreport.googleapis.com/v1/records:queryHistoryRecord';
@@ -141,10 +142,12 @@ function getShortName(metric) {
 }
 
 function saveData(data) {
-    const dir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    // Ensure directory exists
+    const dir = path.dirname(CONFIG.outputFile);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     
-    const file = path.join(dir, 'history.json');
+    // Resolve full path
+    const file = path.resolve(CONFIG.outputFile);
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
     console.log(`✅ Data saved to ${file}`);
 }
