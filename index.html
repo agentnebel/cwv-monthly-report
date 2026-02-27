@@ -23,7 +23,15 @@
         .export-btn:disabled { background: #ccc; border-color: #ccc; cursor: not-allowed; }
 
         .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .chart-container { position: relative; height: 350px; width: 100%; } /* Etwas höher für dickere Balken */
+        .chart-container { position: relative; height: 450px; width: 100%; min-height: 350px; }
+    
+    /* Responsive: Bei größeren Bildschirmen mehr Höhe */
+    @media (min-width: 1200px) {
+        .chart-container { height: 500px; }
+    }
+    @media (min-width: 1600px) {
+        .chart-container { height: 600px; }
+    }
         .metric-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .metric-badge { font-size: 0.8em; padding: 4px 8px; border-radius: 4px; background: #eee; color: #555; }
         
@@ -107,43 +115,56 @@
 
     async function loadData(device) {
         const filename = device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json';
-        
         document.getElementById('report-meta').innerText = `Lade ${device} Daten...`;
+        
+        // Save current device for potential rollback
+        const previousDevice = currentDevice;  
+        currentDevice = device; // Set immediately, might rollback if failed
         
         try {
             const response = await fetch(filename);
-            
-            // Check if response is valid JSON
             const contentType = response.headers.get('content-type');
             if (!response.ok || !contentType || !contentType.includes('application/json')) {
-                throw new Error(`Datei nicht gefunden (Status: ${response.status})`);
+                throw new Error(device === 'PHONE' ? 'No data available' : 'Desktop data not available yet - Generate it via GitHub Actions or wait for the next monthly run');
             }
-            
             const json = await response.json();
             renderReport(json);
+            // Success - update the subtitle to show device
+            document.getElementById('report-meta').innerText = `Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'} data`;
         } catch (e) {
+            // Reset to previous device on error
+            currentDevice = previousDevice;
+            // Update UI to reflect current actual device
+            updateDeviceButtons(currentDevice);
+            
             console.warn(e.message);
-            // Fallback: Try legacy history.json
-            try {
-                const fallback = await fetch('data/history.json');
-                if (fallback.ok) {
-                    const json = await fallback.json();
-                    renderReport(json);
-                    return;
+            // Fallback: Try legacy history.json only for mobile
+            if (device === 'PHONE') {
+                try {
+                    const fallback = await fetch('data/history.json');
+                    if (fallback.ok) {
+                        const json = await fallback.json();
+                        renderReport(json);
+                        document.getElementById('report-meta').innerText = `Origin: ${json.origin}`;
+                        return;
+                    }
+                } catch (e2) {
+                    console.warn("Fallback auch nicht verfügbar");
                 }
-            } catch (e2) {
-                console.warn("Fallback auch nicht verfügbar");
             }
             
-            // Show info message
-            document.getElementById('report-meta').innerHTML = 
-                `<span style="color:orange">⏳ Daten werden generiert... Bitte warte auf den Workflow.</span>`;
+            // Show error or info
+            if (e.message.includes('Desktop data not available')) {
+                document.getElementById('report-meta').innerHTML = 
+                    `<span style="color:orange">⚠️ Desktop Daten noch nicht verfügbar. Bitte Workflow manuell starten oder warten.</span>`;
+            } else {
+                document.getElementById('report-meta').innerHTML = 
+                    `<span class="error-msg">❌ Fehler: ${e.message}</span>`;
+            }
         }
     }
 
-    function switchDevice(device) {
-        currentDevice = device;
-        
+    function updateDeviceButtons(device) {
         // Update Buttons
         document.getElementById('btn-phone').className = `toggle-btn ${device === 'PHONE' ? 'active' : ''}`;
         document.getElementById('btn-desktop').className = `toggle-btn ${device === 'DESKTOP' ? 'active' : ''}`;
@@ -151,7 +172,11 @@
         // Update CrUX Vis Link
         const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=${device}&periodStart=0&periodEnd=-1&display=p75s`;
         document.getElementById('crux-link').href = cruxUrl;
-        
+    }
+    
+    function switchDevice(device) {
+        if (device === currentDevice) return; // Already on this device
+        updateDeviceButtons(device);
         loadData(device);
     }
 
@@ -240,18 +265,21 @@
                     },
                     datalabels: {
                         display: function(context) {
-                            return context.dataset.data[context.dataIndex] > 5; // Nur anzeigen wenn > 5%
+                            return context.dataset.data[context.dataIndex] > 2; // Jetzt ab 2%
                         },
                         color: '#fff',
                         font: { 
                             weight: 'bold',
-                            size: 11
+                            size: 12
                         },
                         formatter: function(value) {
-                            return value > 0 ? value + '%' : '';
+                            return value > 0 ? Math.round(value) + '%' : '';
                         },
                         anchor: 'center',
-                        align: 'center'
+                        align: 'center',
+                        textStrokeColor: 'rgba(0,0,0,0.3)',
+                        textStrokeWidth: 2,
+                        textShadowBlur: 2
                     }
                 }
             }
