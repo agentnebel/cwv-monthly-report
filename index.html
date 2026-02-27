@@ -180,6 +180,19 @@
         loadData(device);
     }
 
+    function aggregateByMonth(periods) {
+        const monthly = {};
+        
+        periods.forEach(p => {
+            // Overwrite entry for this label (effectively taking the last one, assuming chronological order)
+            // Or use p.date to be sure to sort? The API usually returns chronological.
+            monthly[p.label] = p;
+        });
+        
+        // Convert back to array
+        return Object.values(monthly);
+    }
+
     function renderReport(data) {
         // Meta Infos - nur Origin, Device ist über Buttons ersichtlich
         document.getElementById('report-meta').innerText = `Origin: ${data.origin}`;
@@ -189,8 +202,11 @@
         const cruxUrl = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=https%3A%2F%2Fwww.canyon.com%2F&identifier=origin&device=${currentDevice}&periodStart=0&periodEnd=-1&display=p75s`;
         document.getElementById('crux-link').href = cruxUrl;
 
-        // Limit to last 12 months
-        const periods = (data.periods || []).slice(-12);
+        // Aggregate by month (take the last entry per month)
+        const monthlyData = aggregateByMonth(data.periods || []);
+        
+        // Take last 12 months
+        const periods = monthlyData.slice(-12);
         const labels = periods.map(p => p.label);
 
         // Render Charts
