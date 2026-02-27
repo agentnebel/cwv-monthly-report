@@ -1,0 +1,62 @@
+name: Fetch Monthly CWV Data
+
+on:
+  # Run automatically on the 1st of every month at 08:00 UTC
+  schedule:
+    - cron: '0 8 1 * *'
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch CrUX Data
+        env:
+          CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+        run: node fetch_history.js
+
+      - name: Archive old data
+        run: |
+          mkdir -p archive
+          if [ -f data/history.json ]; then
+            cp data/history.json archive/history-$(date +%Y%m%d).json
+          fi
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ archive/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update CWV data - $(date +%Y-%m-%d)"
+          git push
+
+      - name: Copy data to docs folder
+        run: |
+          mkdir -p docs
+          cp -r data docs/
+          cp index.html docs/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          keep_files: false
