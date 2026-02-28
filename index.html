@@ -85,8 +85,10 @@
         </div>
 
         <div class="toggle-container">
-            <button class="toggle-btn active" onclick="switchDevice('PHONE')" id="btn-phone">Mobile</button>
-            <button class="toggle-btn" onclick="switchDevice('DESKTOP')" id="btn-desktop">Desktop</button>
+            <div class="segmented-control">
+                <button class="segment-btn active" onclick="switchDevice('PHONE')" id="btn-phone">Mobile</button>
+                <button class="segment-btn" onclick="switchDevice('DESKTOP')" id="btn-desktop">Desktop</button>
+            </div>
         </div>
 
         <!-- Charts (Solo) -->
@@ -100,8 +102,10 @@
         <div class="subtitle" id="compare-meta">Comparison: Canyon vs Specialized vs Rose</div>
 
         <div class="toggle-container">
-            <button class="toggle-btn active" onclick="switchCompareDevice('PHONE')" id="cmp-btn-phone">Mobile</button>
-            <button class="toggle-btn" onclick="switchCompareDevice('DESKTOP')" id="cmp-btn-desktop">Desktop</button>
+            <div class="segmented-control">
+                <button class="segment-btn active" onclick="switchCompareDevice('PHONE')" id="cmp-btn-phone">Mobile</button>
+                <button class="segment-btn" onclick="switchCompareDevice('DESKTOP')" id="cmp-btn-desktop">Desktop</button>
+            </div>
         </div>
 
         <!-- Charts (Compare) -->
