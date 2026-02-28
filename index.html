@@ -59,11 +59,11 @@
 <body>
 
 <div class="container">
-    <h1>Core Web Vitals History</h1>
+    <h1>Performance Dashboard</h1>
     
     <!-- Main Tabs -->
     <div class="main-tabs">
-        <button class="tab-btn active" onclick="switchMainTab('solo')" id="tab-solo">Canyon (Solo)</button>
+        <button class="tab-btn active" onclick="switchMainTab('solo')" id="tab-solo">Core Web Vitals History</button>
         <button class="tab-btn" onclick="switchMainTab('compare')" id="tab-compare">Canyon vs Specialized</button>
     </div>
 
@@ -100,9 +100,9 @@
         </div>
 
         <!-- Charts (Compare) -->
-        <div class="card lcp"><div class="metric-title">LCP Vergleich (% Good)<span class="metric-badge">Higher is better</span></div><div class="chart-container"><canvas id="cmp-chart-lcp"></canvas></div></div>
-        <div class="card cls"><div class="metric-title">CLS Vergleich (% Good)<span class="metric-badge">Higher is better</span></div><div class="chart-container"><canvas id="cmp-chart-cls"></canvas></div></div>
-        <div class="card inp"><div class="metric-title">INP Vergleich (% Good)<span class="metric-badge">Higher is better</span></div><div class="chart-container"><canvas id="cmp-chart-inp"></canvas></div></div>
+        <div class="card lcp"><div class="metric-title">LCP Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-lcp"></canvas></div></div>
+        <div class="card cls"><div class="metric-title">CLS Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-cls"></canvas></div></div>
+        <div class="card inp"><div class="metric-title">INP Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-inp"></canvas></div></div>
     </div>
 
     <footer>
