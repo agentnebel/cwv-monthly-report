@@ -41,6 +41,24 @@ jobs:
           export OUTPUT_FILE='data/history-desktop.json'
           node fetch_history.js
 
+      - name: Fetch Specialized Mobile Data
+        env:
+          CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+        run: |
+          export ORIGIN='https://www.specialized.com'
+          export DEVICE='PHONE'
+          export OUTPUT_FILE='data/specialized-phone.json'
+          node fetch_history.js
+
+      - name: Fetch Specialized Desktop Data
+        env:
+          CRUX_API_KEY: ${{ secrets.CRUX_API_KEY }}
+        run: |
+          export ORIGIN='https://www.specialized.com'
+          export DEVICE='DESKTOP'
+          export OUTPUT_FILE='data/specialized-desktop.json'
+          node fetch_history.js
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
