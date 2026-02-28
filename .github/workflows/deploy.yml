@@ -1,4 +1,4 @@
-name: Deploy Canyon CWV Report
+name: Deploy Core Web Vitals Report
 
 on:
   push:
@@ -22,6 +22,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Fetch Canyon Mobile Data
         env:
@@ -77,10 +84,24 @@ jobs:
           export OUTPUT_FILE='data/rose-desktop.json'
           node fetch_history.js
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Commit updated data
+        run: |
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update CrUX data [$(date -I)]"
+            git push
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: gh-pages
-          force_orphan: true
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
