@@ -71,18 +71,16 @@
     <div id="view-solo">
         <div class="subtitle" id="report-meta">Loading data...</div>
 
-        <!-- Brand Tabs -->
+        <<!-- Brand Tabs -->
         <div class="toggle-container brand-tabs">
-            <button class="toggle-btn active" onclick="switchBrand('CANYON')" id="brand-canyon">🚴 Canyon</button>
-            <button class="toggle-btn" onclick="switchBrand('SPECIALIZED')" id="brand-specialized">⚡ Specialized</button>
-            <button class="toggle-btn" onclick="switchBrand('ROSE')" id="brand-rose">🌹 Rose</button>
+            <button class="toggle-btn active" onclick="switchBrand('CANYON')" id="brand-canyon">Canyon</button>
+            <button class="toggle-btn" onclick="switchBrand('SPECIALIZED')" id="brand-specialized">Specialized</button>
+            <button class="toggle-btn" onclick="switchBrand('ROSE')" id="brand-rose">Rose</button>
         </div>
 
         <div class="toggle-container">
-            <button class="toggle-btn active" onclick="switchDevice('PHONE')" id="btn-phone">📱 Mobile</button>
-            <button class="toggle-btn" onclick="switchDevice('DESKTOP')" id="btn-desktop">💻 Desktop</button>
-            <div style="width: 20px;"></div>
-            <button class="toggle-btn export-btn" onclick="exportPDF()" id="btn-export">📄 Export PDF</button>
+            <button class="toggle-btn active" onclick="switchDevice('PHONE')" id="btn-phone">Mobile</button>
+            <button class="toggle-btn" onclick="switchDevice('DESKTOP')" id="btn-desktop">Desktop</button>
         </div>
 
         <!-- Charts (Solo) -->
@@ -96,8 +94,8 @@
         <div class="subtitle" id="compare-meta">Comparison: Canyon vs Specialized vs Rose</div>
 
         <div class="toggle-container">
-            <button class="toggle-btn active" onclick="switchCompareDevice('PHONE')" id="cmp-btn-phone">📱 Mobile</button>
-            <button class="toggle-btn" onclick="switchCompareDevice('DESKTOP')" id="cmp-btn-desktop">💻 Desktop</button>
+            <button class="toggle-btn active" onclick="switchCompareDevice('PHONE')" id="cmp-btn-phone">Mobile</button>
+            <button class="toggle-btn" onclick="switchCompareDevice('DESKTOP')" id="cmp-btn-desktop">Desktop</button>
         </div>
 
         <!-- Charts (Compare) -->
@@ -107,8 +105,8 @@
     </div>
 
     <footer>
-        Datenquelle: Chrome User Experience Report (CrUX) via API<br>
-        Generiert am <span id="gen-date">-</span><br>
+        Data source: Chrome User Experience Report (CrUX) via API<br>
+        Generated on <span id="gen-date">-</span><br>
         <a id="crux-link" href="#" target="_blank">CrUX Vis</a>
     </footer>
 </div>
@@ -214,11 +212,11 @@
 
             renderReport(json);
             
-            let brandIcon = '🚴';
-            if (currentBrand === 'SPECIALIZED') brandIcon = '⚡';
-            if (currentBrand === 'ROSE') brandIcon = '🌹';
+            let brandIcon = '';
+            if (currentBrand === 'SPECIALIZED') brandIcon = '';
+            if (currentBrand === 'ROSE') brandIcon = '';
 
-            document.getElementById('report-meta').innerText = `${brandIcon} Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'}`;
+            document.getElementById('report-meta').innerText = `${brandIcon} Origin: ${json.origin} | ${device === 'PHONE' ? ' Mobile' : ' Desktop'}`;
             document.getElementById('gen-date').innerText = new Date(json.generatedAt || new Date()).toLocaleString();
         } catch (e) {
             console.warn("Load Error:", e);
@@ -319,7 +317,8 @@
             }
 
             renderCompareReport(dataCanyon, dataSpec, dataRose);
-            document.getElementById('compare-meta').innerText = `Vergleich: Canyon vs Specialized vs Rose (${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'})`;
+            const deviceLabel = device === 'PHONE' ? 'Mobile' : 'Desktop';
+            document.getElementById('compare-meta').innerText = `Comparison: Canyon vs Specialized vs Rose (${deviceLabel})`;
 
         } catch (e) {
             console.warn(e);
