@@ -28,7 +28,7 @@
         .brand-tabs .toggle-btn.active { background: white; color: #333; border-bottom: 3px solid #007aff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .brand-tabs .toggle-btn:hover { background: rgba(255,255,255,0.5); }
         
-        .toggle-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .toggle-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .toggle-btn { padding: 10px 20px; border: 1px solid #ccc; border-radius: 20px; background: white; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
         .toggle-btn.active { background: #007aff; color: white; border-color: #007aff; font-weight: bold; }
         .toggle-btn:hover:not(.active) { background: #f0f0f0; }
@@ -64,7 +64,7 @@
     <!-- Main Tabs -->
     <div class="main-tabs">
         <button class="tab-btn active" onclick="switchMainTab('solo')" id="tab-solo">Core Web Vitals History</button>
-        <button class="tab-btn" onclick="switchMainTab('compare')" id="tab-compare">Canyon vs Specialized</button>
+        <button class="tab-btn" onclick="switchMainTab('compare')" id="tab-compare">Markenvergleich</button>
     </div>
 
     <!-- VIEW 1: Solo Dashboard (Existing) -->
@@ -75,6 +75,7 @@
         <div class="toggle-container brand-tabs">
             <button class="toggle-btn active" onclick="switchBrand('CANYON')" id="brand-canyon">🚴 Canyon</button>
             <button class="toggle-btn" onclick="switchBrand('SPECIALIZED')" id="brand-specialized">⚡ Specialized</button>
+            <button class="toggle-btn" onclick="switchBrand('ROSE')" id="brand-rose">🌹 Rose</button>
         </div>
 
         <div class="toggle-container">
@@ -92,7 +93,7 @@
 
     <!-- VIEW 2: Comparison Dashboard (New) -->
     <div id="view-compare" class="hidden">
-        <div class="subtitle" id="compare-meta">Vergleich: Canyon vs Specialized</div>
+        <div class="subtitle" id="compare-meta">Vergleich: Canyon vs Specialized vs Rose</div>
 
         <div class="toggle-container">
             <button class="toggle-btn active" onclick="switchCompareDevice('PHONE')" id="cmp-btn-phone">📱 Mobile</button>
@@ -117,7 +118,11 @@
     
     // Config
     const COLORS = { good: '#0cce6b', ni: '#ffa400', poor: '#ff4e42' };
-    const BRAND_COLORS = { canyon: '#333333', specialized: '#E32636' }; // New comparison colors
+    const BRAND_COLORS = { 
+        canyon: '#333333', 
+        specialized: '#E32636',
+        rose: '#000000'
+    };
 
     // State
     let charts = {}; // Stores all chart instances
@@ -150,12 +155,17 @@
         }
     }
 
-    // --- SOLO LOGIC (Legacy + Adapted) ---
+    // --- SOLO LOGIC ---
     function switchBrand(brand) {
         if (brand === currentBrand) return;
         currentBrand = brand;
-        document.getElementById('brand-canyon').className = `toggle-btn ${brand === 'CANYON' ? 'active' : ''}`;
-        document.getElementById('brand-specialized').className = `toggle-btn ${brand === 'SPECIALIZED' ? 'active' : ''}`;
+        
+        // Reset classes
+        ['canyon', 'specialized', 'rose'].forEach(b => {
+            const el = document.getElementById(`brand-${b}`);
+            if (el) el.className = `toggle-btn ${brand === b.toUpperCase() ? 'active' : ''}`;
+        });
+
         loadData(currentDevice);
     }
 
@@ -174,11 +184,11 @@
 
     async function loadData(device) {
         let filename;
-        if (currentBrand === 'CANYON') {
-            filename = device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json';
-        } else {
-            filename = device === 'PHONE' ? 'data/specialized-phone.json' : 'data/specialized-desktop.json';
-        }
+        const d = device === 'PHONE' ? 'phone' : 'desktop';
+        
+        if (currentBrand === 'CANYON') filename = `data/history-${d}.json`;
+        else if (currentBrand === 'SPECIALIZED') filename = `data/specialized-${d}.json`;
+        else if (currentBrand === 'ROSE') filename = `data/rose-${d}.json`;
         
         // Add cache buster
         filename += CACHE_BUSTER;
@@ -204,17 +214,18 @@
 
             renderReport(json);
             
-            const brandIcon = currentBrand === 'CANYON' ? '🚴' : '⚡';
+            let brandIcon = '🚴';
+            if (currentBrand === 'SPECIALIZED') brandIcon = '⚡';
+            if (currentBrand === 'ROSE') brandIcon = '🌹';
+
             document.getElementById('report-meta').innerText = `${brandIcon} Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'}`;
             document.getElementById('gen-date').innerText = new Date(json.generatedAt || new Date()).toLocaleString();
         } catch (e) {
             console.warn("Load Error:", e);
             
             // CLEAR CHARTS ON ERROR
-            // This prevents old data from staying visible
             ['chart-lcp', 'chart-cls', 'chart-inp'].forEach(id => {
                 if (charts[id]) charts[id].destroy();
-                // Clear canvas context
                 const canvas = document.getElementById(id);
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -271,7 +282,7 @@
         });
     }
 
-    // --- COMPARE LOGIC (New) ---
+    // --- COMPARE LOGIC ---
     function switchCompareDevice(device) {
         if (device === currentCompareDevice) return;
         currentCompareDevice = device;
@@ -283,87 +294,110 @@
     async function loadCompareData(device) {
         document.getElementById('compare-meta').innerText = `Lade Vergleichsdaten (${device})...`;
         
-        // Define files with cache buster
-        const fileCanyon = (device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json') + CACHE_BUSTER;
-        const fileSpecialized = (device === 'PHONE' ? 'data/specialized-phone.json' : 'data/specialized-desktop.json') + CACHE_BUSTER;
+        const d = device === 'PHONE' ? 'phone' : 'desktop';
+        const fileCanyon = `data/history-${d}.json` + CACHE_BUSTER;
+        const fileSpecialized = `data/specialized-${d}.json` + CACHE_BUSTER;
+        const fileRose = `data/rose-${d}.json` + CACHE_BUSTER;
 
         try {
-            // Parallel fetch
-            const [resCanyon, resSpec] = await Promise.all([
+            // Parallel fetch all 3
+            const [resCanyon, resSpec, resRose] = await Promise.all([
                 fetch(fileCanyon),
-                fetch(fileSpecialized)
+                fetch(fileSpecialized),
+                fetch(fileRose)
             ]);
 
-            if (!resCanyon.ok || !resSpec.ok) throw new Error("Missing data for comparison");
+            // Canyon & Specialized must exist, Rose is optional but preferred
+            if (!resCanyon.ok || !resSpec.ok) throw new Error("Missing base data for comparison");
 
             const dataCanyon = await resCanyon.json();
             const dataSpec = await resSpec.json();
+            
+            let dataRose = null;
+            if (resRose.ok) {
+                dataRose = await resRose.json();
+            }
 
-            renderCompareReport(dataCanyon, dataSpec);
-            document.getElementById('compare-meta').innerText = `Vergleich: Canyon vs Specialized (${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'})`;
+            renderCompareReport(dataCanyon, dataSpec, dataRose);
+            document.getElementById('compare-meta').innerText = `Vergleich: Canyon vs Specialized vs Rose (${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'})`;
 
         } catch (e) {
             console.warn(e);
-            
-            // Clear compare charts on error
             ['cmp-chart-lcp', 'cmp-chart-cls', 'cmp-chart-inp'].forEach(id => {
                 if (charts[id]) charts[id].destroy();
             });
-            
             document.getElementById('compare-meta').innerHTML = `<span style="color:orange">⚠️ Daten unvollständig für Vergleich.</span>`;
         }
     }
 
-    function renderCompareReport(canyon, specialized) {
+    function renderCompareReport(canyon, specialized, rose) {
         const canyonPeriods = aggregateByMonth(canyon.periods || []).slice(-12);
         const specPeriods = aggregateByMonth(specialized.periods || []).slice(-12);
+        const rosePeriods = rose ? aggregateByMonth(rose.periods || []).slice(-12) : [];
         
-        // Use Canyon labels (assuming sync) - fallback to longest
+        // Use Canyon labels as base
         const labels = canyonPeriods.length >= specPeriods.length 
             ? canyonPeriods.map(p => p.label) 
             : specPeriods.map(p => p.label);
 
-        // Helper to get data safely matching labels
         const getData = (periods, metric) => {
             return labels.map(label => {
                 const p = periods.find(p => p.label === label);
-                return p ? (p.metrics[metric]?.good || 0) : null; // null breaks line if missing
+                return p ? (p.metrics[metric]?.good || 0) : null;
             });
         };
 
-        updateCompareChart('cmp-chart-lcp', labels, getData(canyonPeriods, 'lcp'), getData(specPeriods, 'lcp'));
-        updateCompareChart('cmp-chart-cls', labels, getData(canyonPeriods, 'cls'), getData(specPeriods, 'cls'));
-        updateCompareChart('cmp-chart-inp', labels, getData(canyonPeriods, 'inp'), getData(specPeriods, 'inp'));
+        const datasets = [
+            {
+                label: 'Canyon',
+                dataKey: 'canyon',
+                color: BRAND_COLORS.canyon,
+                periods: canyonPeriods
+            },
+            {
+                label: 'Specialized',
+                dataKey: 'specialized',
+                color: BRAND_COLORS.specialized,
+                periods: specPeriods
+            }
+        ];
+
+        if (rose) {
+            datasets.push({
+                label: 'Rose',
+                dataKey: 'rose',
+                color: BRAND_COLORS.rose,
+                periods: rosePeriods
+            });
+        }
+
+        ['lcp', 'cls', 'inp'].forEach(metric => {
+            updateCompareChart(`cmp-chart-${metric}`, labels, datasets, metric);
+        });
     }
 
-    function updateCompareChart(canvasId, labels, dataCanyon, dataSpec) {
+    function updateCompareChart(canvasId, labels, datasetsConfig, metric) {
         if (charts[canvasId]) charts[canvasId].destroy();
+
+        const datasets = datasetsConfig.map(ds => ({
+            label: `${ds.label} (Good %)`,
+            data: labels.map(label => {
+                const p = ds.periods.find(p => p.label === label);
+                return p ? (p.metrics[metric]?.good || 0) : null;
+            }),
+            borderColor: ds.color,
+            backgroundColor: ds.color,
+            borderWidth: 3,
+            pointRadius: 4,
+            tension: 0.3
+        }));
 
         const ctx = document.getElementById(canvasId).getContext('2d');
         charts[canvasId] = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: [
-                    {
-                        label: 'Canyon (Good %)',
-                        data: dataCanyon,
-                        borderColor: BRAND_COLORS.canyon,
-                        backgroundColor: BRAND_COLORS.canyon,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Specialized (Good %)',
-                        data: dataSpec,
-                        borderColor: BRAND_COLORS.specialized,
-                        backgroundColor: BRAND_COLORS.specialized,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        tension: 0.3
-                    }
-                ]
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -378,7 +412,7 @@
                 },
                 plugins: {
                     legend: { position: 'bottom' },
-                    datalabels: { display: false } // No datalabels for lines to stay clean
+                    datalabels: { display: false }
                 }
             }
         });
@@ -388,13 +422,15 @@
     function aggregateByMonth(periods) {
         const monthly = {};
         periods.forEach(p => monthly[p.label] = p);
-        return Object.values(monthly); // Returns array sorted by insertion (usually chronologic)
+        return Object.values(monthly);
     }
 
     function updateCruxLink() {
-        // Logic for SOLO view link
         if (currentMainTab === 'solo') {
-            const origin = currentBrand === 'CANYON' ? 'https://www.canyon.com' : 'https://www.specialized.com';
+            let origin = 'https://www.canyon.com';
+            if (currentBrand === 'SPECIALIZED') origin = 'https://www.specialized.com';
+            if (currentBrand === 'ROSE') origin = 'https://www.rosebikes.de';
+            
             const url = `https://cruxvis.withgoogle.com/#/?view=cwvsummary&url=${encodeURIComponent(origin)}&identifier=origin&device=${currentDevice}&periodStart=0&periodEnd=-1&display=p75s`;
             document.getElementById('crux-link').href = url;
         } else {
@@ -403,14 +439,11 @@
     }
 
     function exportPDF() {
-        // Simple alert for now as PDF export with tabs needs more logic
         alert("PDF Export unterstützt aktuell nur die aktive Ansicht. (ToDo)");
-        // Existing logic would need modification to unhide everything or clone nodes.
-        // Keeping it simple as requested to focus on tabs/comparison first.
     }
 
     // Init
-    loadData('PHONE'); // Start with solo view
+    loadData('PHONE');
 </script>
 
 </body>
