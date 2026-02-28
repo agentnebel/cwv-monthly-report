@@ -64,12 +64,12 @@
     <!-- Main Tabs -->
     <div class="main-tabs">
         <button class="tab-btn active" onclick="switchMainTab('solo')" id="tab-solo">Core Web Vitals History</button>
-        <button class="tab-btn" onclick="switchMainTab('compare')" id="tab-compare">Markenvergleich</button>
+        <button class="tab-btn" onclick="switchMainTab('compare')" id="tab-compare">Brand Comparison</button>
     </div>
 
     <!-- VIEW 1: Solo Dashboard (Existing) -->
     <div id="view-solo">
-        <div class="subtitle" id="report-meta">Lade Daten...</div>
+        <div class="subtitle" id="report-meta">Loading data...</div>
 
         <!-- Brand Tabs -->
         <div class="toggle-container brand-tabs">
@@ -82,7 +82,7 @@
             <button class="toggle-btn active" onclick="switchDevice('PHONE')" id="btn-phone">📱 Mobile</button>
             <button class="toggle-btn" onclick="switchDevice('DESKTOP')" id="btn-desktop">💻 Desktop</button>
             <div style="width: 20px;"></div>
-            <button class="toggle-btn export-btn" onclick="exportPDF()" id="btn-export">📄 PDF Export</button>
+            <button class="toggle-btn export-btn" onclick="exportPDF()" id="btn-export">📄 Export PDF</button>
         </div>
 
         <!-- Charts (Solo) -->
@@ -93,7 +93,7 @@
 
     <!-- VIEW 2: Comparison Dashboard (New) -->
     <div id="view-compare" class="hidden">
-        <div class="subtitle" id="compare-meta">Vergleich: Canyon vs Specialized vs Rose</div>
+        <div class="subtitle" id="compare-meta">Comparison: Canyon vs Specialized vs Rose</div>
 
         <div class="toggle-container">
             <button class="toggle-btn active" onclick="switchCompareDevice('PHONE')" id="cmp-btn-phone">📱 Mobile</button>
@@ -101,9 +101,9 @@
         </div>
 
         <!-- Charts (Compare) -->
-        <div class="card lcp"><div class="metric-title">LCP Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-lcp"></canvas></div></div>
-        <div class="card cls"><div class="metric-title">CLS Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-cls"></canvas></div></div>
-        <div class="card inp"><div class="metric-title">INP Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-inp"></canvas></div></div>
+        <div class="card lcp"><div class="metric-title">LCP Comparison (% Good)</div><div class="chart-container"><canvas id="cmp-chart-lcp"></canvas></div></div>
+        <div class="card cls"><div class="metric-title">CLS Comparison (% Good)</div><div class="chart-container"><canvas id="cmp-chart-cls"></canvas></div></div>
+        <div class="card inp"><div class="metric-title">INP Comparison (% Good)</div><div class="chart-container"><canvas id="cmp-chart-inp"></canvas></div></div>
     </div>
 
     <footer>
@@ -193,7 +193,7 @@
         // Add cache buster
         filename += CACHE_BUSTER;
         
-        document.getElementById('report-meta').innerText = `Lade ${currentBrand} ${device} Daten...`;
+        document.getElementById('report-meta').innerText = `Loading ${currentBrand} ${device} data...`;
         
         try {
             const response = await fetch(filename);
@@ -231,7 +231,7 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             });
 
-            document.getElementById('report-meta').innerHTML = `<span style="color:orange">⚠️ Keine Daten für ${currentBrand} ${device}<br><small>${e.message}</small></span>`;
+            document.getElementById('report-meta').innerHTML = `<span style="color:orange">⚠️ No data for ${currentBrand} ${device}<br><small>${e.message}</small></span>`;
         }
     }
 
@@ -292,7 +292,7 @@
     }
 
     async function loadCompareData(device) {
-        document.getElementById('compare-meta').innerText = `Lade Vergleichsdaten (${device})...`;
+        document.getElementById('compare-meta').innerText = `Loading comparison data (${device})...`;
         
         const d = device === 'PHONE' ? 'phone' : 'desktop';
         const fileCanyon = `data/history-${d}.json` + CACHE_BUSTER;
@@ -326,7 +326,7 @@
             ['cmp-chart-lcp', 'cmp-chart-cls', 'cmp-chart-inp'].forEach(id => {
                 if (charts[id]) charts[id].destroy();
             });
-            document.getElementById('compare-meta').innerHTML = `<span style="color:orange">⚠️ Daten unvollständig für Vergleich.</span>`;
+            document.getElementById('compare-meta').innerHTML = `<span style="color:orange">⚠️ Incomplete data for comparison.</span>`;
         }
     }
 
