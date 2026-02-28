@@ -59,11 +59,11 @@
 <body>
 
 <div class="container">
-    <h1>Core Web Vitals History</h1>
+    <h1>Performance Dashboard</h1>
     
     <!-- Main Tabs -->
     <div class="main-tabs">
-        <button class="tab-btn active" onclick="switchMainTab('solo')" id="tab-solo">Canyon (Solo)</button>
+        <button class="tab-btn active" onclick="switchMainTab('solo')" id="tab-solo">Core Web Vitals History</button>
         <button class="tab-btn" onclick="switchMainTab('compare')" id="tab-compare">Canyon vs Specialized</button>
     </div>
 
@@ -100,9 +100,9 @@
         </div>
 
         <!-- Charts (Compare) -->
-        <div class="card lcp"><div class="metric-title">LCP Vergleich (% Good)<span class="metric-badge">Higher is better</span></div><div class="chart-container"><canvas id="cmp-chart-lcp"></canvas></div></div>
-        <div class="card cls"><div class="metric-title">CLS Vergleich (% Good)<span class="metric-badge">Higher is better</span></div><div class="chart-container"><canvas id="cmp-chart-cls"></canvas></div></div>
-        <div class="card inp"><div class="metric-title">INP Vergleich (% Good)<span class="metric-badge">Higher is better</span></div><div class="chart-container"><canvas id="cmp-chart-inp"></canvas></div></div>
+        <div class="card lcp"><div class="metric-title">LCP Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-lcp"></canvas></div></div>
+        <div class="card cls"><div class="metric-title">CLS Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-cls"></canvas></div></div>
+        <div class="card inp"><div class="metric-title">INP Vergleich (% Good)</div><div class="chart-container"><canvas id="cmp-chart-inp"></canvas></div></div>
     </div>
 
     <footer>
@@ -129,6 +129,9 @@
 
     // Compare State
     let currentCompareDevice = 'PHONE';
+
+    // Cache buster for fetches (avoids browser cache issues on deploy)
+    const CACHE_BUSTER = `?v=${new Date().getTime()}`;
 
     // --- MAIN TABS ---
     function switchMainTab(tab) {
@@ -177,20 +180,47 @@
             filename = device === 'PHONE' ? 'data/specialized-phone.json' : 'data/specialized-desktop.json';
         }
         
+        // Add cache buster
+        filename += CACHE_BUSTER;
+        
         document.getElementById('report-meta').innerText = `Lade ${currentBrand} ${device} Daten...`;
         
         try {
             const response = await fetch(filename);
-            if (!response.ok) throw new Error("Data not found");
+            
+            if (!response.ok) {
+                throw new Error(`Data file not found: ${filename} (${response.status})`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (contentType && !contentType.includes('application/json')) {
+                 throw new Error(`Invalid content-type: ${contentType}`);
+            }
+
             const json = await response.json();
+            
+            // Validate data integrity
+            if (!json.origin) throw new Error("Invalid JSON: Missing origin");
+
             renderReport(json);
             
             const brandIcon = currentBrand === 'CANYON' ? '🚴' : '⚡';
             document.getElementById('report-meta').innerText = `${brandIcon} Origin: ${json.origin} | ${device === 'PHONE' ? '📱 Mobile' : '💻 Desktop'}`;
             document.getElementById('gen-date').innerText = new Date(json.generatedAt || new Date()).toLocaleString();
         } catch (e) {
-            console.warn(e);
-            document.getElementById('report-meta').innerHTML = `<span style="color:orange">⚠️ Keine Daten für ${currentBrand} ${device}</span>`;
+            console.warn("Load Error:", e);
+            
+            // CLEAR CHARTS ON ERROR
+            // This prevents old data from staying visible
+            ['chart-lcp', 'chart-cls', 'chart-inp'].forEach(id => {
+                if (charts[id]) charts[id].destroy();
+                // Clear canvas context
+                const canvas = document.getElementById(id);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            document.getElementById('report-meta').innerHTML = `<span style="color:orange">⚠️ Keine Daten für ${currentBrand} ${device}<br><small>${e.message}</small></span>`;
         }
     }
 
@@ -253,9 +283,9 @@
     async function loadCompareData(device) {
         document.getElementById('compare-meta').innerText = `Lade Vergleichsdaten (${device})...`;
         
-        // Define files
-        const fileCanyon = device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json';
-        const fileSpecialized = device === 'PHONE' ? 'data/specialized-phone.json' : 'data/specialized-desktop.json';
+        // Define files with cache buster
+        const fileCanyon = (device === 'PHONE' ? 'data/history-phone.json' : 'data/history-desktop.json') + CACHE_BUSTER;
+        const fileSpecialized = (device === 'PHONE' ? 'data/specialized-phone.json' : 'data/specialized-desktop.json') + CACHE_BUSTER;
 
         try {
             // Parallel fetch
@@ -274,6 +304,12 @@
 
         } catch (e) {
             console.warn(e);
+            
+            // Clear compare charts on error
+            ['cmp-chart-lcp', 'cmp-chart-cls', 'cmp-chart-inp'].forEach(id => {
+                if (charts[id]) charts[id].destroy();
+            });
+            
             document.getElementById('compare-meta').innerHTML = `<span style="color:orange">⚠️ Daten unvollständig für Vergleich.</span>`;
         }
     }
