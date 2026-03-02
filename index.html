@@ -228,9 +228,28 @@
     function updateWeeklyChart(canvasId, labels, periods, metricKey) {
         if (charts[canvasId]) charts[canvasId].destroy();
 
-        const dataGood = periods.map(p => p.metrics[metricKey]?.good || 0);
-        const dataNi = periods.map(p => p.metrics[metricKey]?.ni || 0);
-        const dataPoor = periods.map(p => p.metrics[metricKey]?.poor || 0);
+        // Normalize to 100% stacked
+        const dataGood = [];
+        const dataNi = [];
+        const dataPoor = [];
+
+        periods.forEach(p => {
+            const m = p.metrics[metricKey] || {};
+            const good = m.good || 0;
+            const ni = m.ni || 0;
+            const poor = m.poor || 0;
+            const total = good + ni + poor;
+
+            if (total > 0) {
+                dataGood.push((good / total) * 100);
+                dataNi.push((ni / total) * 100);
+                dataPoor.push((poor / total) * 100);
+            } else {
+                dataGood.push(0);
+                dataNi.push(0);
+                dataPoor.push(0);
+            }
+        });
 
         const ctx = document.getElementById(canvasId).getContext('2d');
         charts[canvasId] = new Chart(ctx, {
@@ -245,7 +264,8 @@
                         borderColor: COLORS.good,
                         fill: true,
                         pointRadius: 0,
-                        borderWidth: 1
+                        borderWidth: 0,
+                        tension: 0
                     },
                     { 
                         label: 'Needs Improvement', 
@@ -254,7 +274,8 @@
                         borderColor: COLORS.ni,
                         fill: true,
                         pointRadius: 0,
-                        borderWidth: 1
+                        borderWidth: 0,
+                        tension: 0
                     },
                     { 
                         label: 'Poor', 
@@ -263,7 +284,8 @@
                         borderColor: COLORS.poor,
                         fill: true,
                         pointRadius: 0,
-                        borderWidth: 1
+                        borderWidth: 0,
+                        tension: 0
                     }
                 ]
             },
@@ -272,20 +294,32 @@
                 maintainAspectRatio: false,
                 scales: { 
                     x: { 
+                        grid: { display: false },
                         ticks: { maxTicksLimit: 12 } 
                     },
                     y: { 
                         stacked: true, 
                         max: 100, 
                         min: 0,
-                        grid: { display: true }
+                        grid: { color: '#e5e5ea' },
+                        ticks: {
+                            callback: function(value) { return value + '%'; }
+                        }
                     } 
                 },
                 plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { 
+                        position: 'bottom',
+                        labels: { usePointStyle: true, boxWidth: 10 }
+                    },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + Math.round(context.parsed.y) + '%';
+                            }
+                        }
                     },
                     datalabels: { display: false }
                 },
