@@ -1,4 +1,4 @@
-# Performance Dashboard
+# Google Performance Dashboard
 
 An automated dashboard that tracks, compares, and visualizes the web performance of **Canyon**, **Specialized**, and **Rose Bikes** over the last 12 months.
 
