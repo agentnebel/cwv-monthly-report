@@ -2,6 +2,16 @@
 
 An automated dashboard that tracks, compares, and visualizes the web performance of **Canyon**, **Specialized**, and **Rose Bikes** over the last 12 months.
 
+🔗 **Live dashboard:** [agentnebel.github.io/cwv-monthly-report](https://agentnebel.github.io/cwv-monthly-report/)
+
+---
+
+## Screenshots
+
+| Weekly Trend | Monthly Trend | Brand Comparison |
+| :---: | :---: | :---: |
+| [![Weekly Trend](screenshots/weekly-trend.png)](screenshots/weekly-trend.png) | [![Monthly Trend](screenshots/monthly-trend.png)](screenshots/monthly-trend.png) | [![Brand Comparison](screenshots/brand-comparison.png)](screenshots/brand-comparison.png) |
+
 ---
 
 ## What is this?
@@ -14,13 +24,21 @@ This project creates **monthly reports** for the three key Google Core Web Vital
 
 ---
 
-## Two Views
+## Three Views
 
-The dashboard offers two different perspectives:
+The dashboard offers three different perspectives, accessible via tabs at the top:
 
-### 1. Core Web Vitals History (Solo View)
+### 1. Weekly Trend
 
-Shows the detailed performance of a single brand.
+Shows the **week-by-week** evolution of Canyon's Core Web Vitals as stacked area charts (LCP, CLS, INP).
+
+**Features:**
+- **Device Selection:** Mobile 📱 vs Desktop 💻 with one click
+- **Granular Trend:** Spot short-term regressions or improvements week over week
+
+### 2. Monthly Trend
+
+Shows the detailed monthly performance of a single brand.
 
 **Features:**
 - **Brand Selection:** Switch between Canyon 🚴, Specialized ⚡, and Rose 🌹
@@ -33,7 +51,7 @@ Shows the detailed performance of a single brand.
 - 🟡 **Needs Improvement** – Moderate experience
 - 🔴 **Poor** – Slow or unstable experience
 
-### 2. Brand Comparison (Comparison View)
+### 3. Brand Comparison
 
 Shows all three brands directly side-by-side as **line charts**.
 
