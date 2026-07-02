@@ -2,12 +2,12 @@
   "name": "cwv-monthly-report",
   "version": "1.0.0",
   "description": "Monthly Core Web Vitals Report with 12-month comparison charts",
-  "main": "fetch-crux-monthly.js",
+  "main": "fetch_all.js",
   "scripts": {
-    "fetch": "node fetch-crux-monthly.js",
+    "fetch": "node fetch_all.js",
     "serve": "python3 -m http.server 8080"
   },
-  "dependencies": {
-    "node-fetch": "^3.3.2"
+  "engines": {
+    "node": ">=18"
   }
 }

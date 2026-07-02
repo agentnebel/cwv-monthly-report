@@ -6,7 +6,9 @@ cd "$(dirname "$0")"
 
 # Load API key from environment file (if exists)
 if [ -f /data/.openclaw/workspace/.env ]; then
-    export $(cat /data/.openclaw/workspace/.env | grep -v '^#' | xargs)
+    set -a
+    . /data/.openclaw/workspace/.env
+    set +a
 fi
 
 if [ -z "$CRUX_API_KEY" ]; then

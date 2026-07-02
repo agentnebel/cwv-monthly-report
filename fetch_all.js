@@ -147,6 +147,7 @@ function processHistory(record, origin, formFactor) {
 }
 
 function saveData(data, outputFile) {
+    fs.mkdirSync(path.dirname(outputFile), { recursive: true });
     fs.writeFileSync(outputFile, JSON.stringify(data, null, 2));
 }
 
