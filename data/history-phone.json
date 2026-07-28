@@ -1,29 +1,8 @@
 {
   "origin": "https://www.canyon.com",
   "formFactor": "PHONE",
-  "generatedAt": "2026-07-21T10:22:21.854Z",
+  "generatedAt": "2026-07-28T10:30:45.373Z",
   "periods": [
-    {
-      "date": "2026-01-04",
-      "label": "1/2026",
-      "metrics": {
-        "lcp": {
-          "good": 86.38,
-          "ni": 9.14,
-          "poor": 4.48
-        },
-        "cls": {
-          "good": 88.17,
-          "ni": 4.46,
-          "poor": 7.37
-        },
-        "inp": {
-          "good": 75.33,
-          "ni": 22.67,
-          "poor": 2
-        }
-      }
-    },
     {
       "date": "2026-01-11",
       "label": "1/2026",
@@ -525,6 +504,27 @@
           "good": 79.06,
           "ni": 18.93,
           "poor": 2.01
+        }
+      }
+    },
+    {
+      "date": "2026-06-28",
+      "label": "6/2026",
+      "metrics": {
+        "lcp": {
+          "good": 89.37,
+          "ni": 7.02,
+          "poor": 3.61
+        },
+        "cls": {
+          "good": 91.87,
+          "ni": 3.41,
+          "poor": 4.72
+        },
+        "inp": {
+          "good": 79.55,
+          "ni": 18.45,
+          "poor": 2
         }
       }
     }
