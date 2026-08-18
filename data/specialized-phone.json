@@ -1,29 +1,8 @@
 {
   "origin": "https://www.specialized.com",
   "formFactor": "PHONE",
-  "generatedAt": "2026-08-11T08:49:19.828Z",
+  "generatedAt": "2026-08-18T08:31:07.649Z",
   "periods": [
-    {
-      "date": "2026-01-25",
-      "label": "1/2026",
-      "metrics": {
-        "lcp": {
-          "good": 81.93,
-          "ni": 10.59,
-          "poor": 7.48
-        },
-        "cls": {
-          "good": 85.76,
-          "ni": 6.95,
-          "poor": 7.29
-        },
-        "inp": {
-          "good": 49.19,
-          "ni": 31.55,
-          "poor": 19.26
-        }
-      }
-    },
     {
       "date": "2026-02-01",
       "label": "2/2026",
@@ -525,6 +504,27 @@
           "good": 61.67,
           "ni": 27.53,
           "poor": 10.8
+        }
+      }
+    },
+    {
+      "date": "2026-07-19",
+      "label": "7/2026",
+      "metrics": {
+        "lcp": {
+          "good": 85.24,
+          "ni": 9.29,
+          "poor": 5.47
+        },
+        "cls": {
+          "good": 89.54,
+          "ni": 5.02,
+          "poor": 5.44
+        },
+        "inp": {
+          "good": 61.2,
+          "ni": 27.81,
+          "poor": 10.99
         }
       }
     }
