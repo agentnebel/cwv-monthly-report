@@ -1,29 +1,8 @@
 {
   "origin": "https://www.rosebikes.de",
   "formFactor": "PHONE",
-  "generatedAt": "2026-08-25T08:36:47.385Z",
+  "generatedAt": "2026-09-01T13:01:04.237Z",
   "periods": [
-    {
-      "date": "2026-02-08",
-      "label": "2/2026",
-      "metrics": {
-        "lcp": {
-          "good": 90.73,
-          "ni": 6.18,
-          "poor": 3.09
-        },
-        "cls": {
-          "good": 90.97,
-          "ni": 2.8,
-          "poor": 6.23
-        },
-        "inp": {
-          "good": 88.15,
-          "ni": 9.83,
-          "poor": 2.02
-        }
-      }
-    },
     {
       "date": "2026-02-15",
       "label": "2/2026",
@@ -525,6 +504,27 @@
           "good": 90.38,
           "ni": 7.9,
           "poor": 1.72
+        }
+      }
+    },
+    {
+      "date": "2026-08-02",
+      "label": "8/2026",
+      "metrics": {
+        "lcp": {
+          "good": 91.97,
+          "ni": 5.16,
+          "poor": 2.87
+        },
+        "cls": {
+          "good": 93.08,
+          "ni": 2.11,
+          "poor": 4.81
+        },
+        "inp": {
+          "good": 90.21,
+          "ni": 8.08,
+          "poor": 1.71
         }
       }
     }
